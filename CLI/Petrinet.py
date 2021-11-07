@@ -8,6 +8,8 @@ step-1
 genrate n places, m transitions, get all arcs for the petrinet,initial state for tokens.
 Step-2
 """
+import graphviz
+from PIL import Image
 from Place import Place
 from Arc import Arc
 from Transition import Transition
@@ -23,7 +25,17 @@ class Petrinet:
         self.places.append(place)
 
     # function for adding arcs
-    def add_arc(self, arc):
+    # def add_arc(self, arc):
+    #     assert (type(arc)==Arc), "object is not of type Arc."
+    #     self.arcs.append(arc)
+
+    def add_arc(self, place1, place2, io):
+        arc = Arc(place1.name+"->"+place2.name)
+        arc.initialize(place1, place2, io)
+        if (io == "input") :
+            place2.add_arc(arc)
+        else :
+            place1.add_arc(arc)
         assert (type(arc)==Arc), "object is not of type Arc."
         self.arcs.append(arc)
 
@@ -71,11 +83,16 @@ class Petrinet:
                     graph_edges.append([u,v,transition])
                     if v not in vis:
                         queue.append(v)
-        self.print_graph(graph_edges)
 
+        src = graphviz.Source(self.print_graph(graph_edges))
+        src._engine="dot"
+        src.format="png"
+        src.render("reachable.gv")
+        # print(graphviz.Source(self.print_graph(graph_edges)))
     # function to print graph
     def print_graph(self,graph_edges):
+        st = "digraph {\n"
         for edge in graph_edges:
-            edge[0] = [str(x) for x in edge[0]]
-            edge[1] = [str(x) for x in edge[1]]
-            print("".join(edge[0])+" ---"+str(edge[2])+"---> "+"".join(edge[1]))
+            st += str('"'+str(edge[0])+ '"' +'-> '+'"'""+str(edge[1])+'"'+'[label ="'+str(edge[2])+'"]\n')
+        st +="}"
+        return st
